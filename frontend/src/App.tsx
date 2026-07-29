@@ -1,14 +1,18 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "./api";
 import type { Course } from "./types";
+import { CreateCourseForm } from "./components/CreateCourseForm";
+import { CourseList } from "./components/CourseList";
+import { CourseDetails } from "./components/CourseDetails";
 import "./App.css";
 
 export default function App() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  async function loadCourses() {
+  const loadCourses = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -18,39 +22,45 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     loadCourses();
-  }, []);
+  }, [loadCourses]);
+
+  function handleDeleted(id: string) {
+    if (id === selectedId) setSelectedId(null);
+    loadCourses();
+  }
 
   return (
     <main className="container">
       <h1>Course Progress Tracker</h1>
 
-      {loading && <p className="muted">Loading…</p>}
-      {error && <p className="error">Error: {error}</p>}
+      <div className="layout">
+        <div className="col">
+          <CreateCourseForm onCreated={loadCourses} />
 
-      {!loading && !error && courses.length === 0 && (
-        <p className="muted">No courses yet.</p>
-      )}
+          {loading && <p className="muted">Loading…</p>}
+          {error && <p className="error">Error: {error}</p>}
+          {!loading && !error && (
+            <CourseList
+              courses={courses}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              onDeleted={handleDeleted}
+            />
+          )}
+        </div>
 
-      <ul className="course-list">
-        {courses.map((c) => (
-          <li key={c.id} className="course-card">
-            <div className="course-head">
-              <strong>{c.title}</strong>
-              <span className="muted">
-                {c.completedLessons}/{c.totalLessons} · {c.progress}%
-              </span>
-            </div>
-            {c.description && <p className="muted">{c.description}</p>}
-            <div className="bar">
-              <div className="bar-fill" style={{ width: `${c.progress}%` }} />
-            </div>
-          </li>
-        ))}
-      </ul>
+        <div className="col">
+          {selectedId ? (
+            <CourseDetails courseId={selectedId} onChanged={loadCourses} />
+          ) : (
+            <p className="muted">Select a course to see its lessons.</p>
+          )}
+        </div>
+      </div>
     </main>
   );
 }
