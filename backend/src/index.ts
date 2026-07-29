@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { coursesRouter } from "./routes/courses";
+import { lessonsRouter } from "./routes/lessons";
 import { errorHandler, notFound } from "./middleware/errorHandler";
 
 const app = express();
@@ -18,7 +19,7 @@ app.get("/health", (_req, res) => {
 
 // Routes
 app.use("/courses", coursesRouter);
-// lessonsRouter mounted in Stage 5
+app.use(lessonsRouter);
 
 // 404 + central error handler (must be last)
 app.use(notFound);
