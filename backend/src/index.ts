@@ -1,6 +1,8 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import { coursesRouter } from "./routes/courses";
+import { errorHandler, notFound } from "./middleware/errorHandler";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -14,9 +16,13 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Routes (mounted in later stages)
-// app.use("/courses", coursesRouter);
-// app.use("/", lessonsRouter);
+// Routes
+app.use("/courses", coursesRouter);
+// lessonsRouter mounted in Stage 5
+
+// 404 + central error handler (must be last)
+app.use(notFound);
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
