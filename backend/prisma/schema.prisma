@@ -1,0 +1,33 @@
+// Prisma v6 — datasource `url` still lives in the schema (removed in v7).
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  lessons     Lesson[]
+
+  @@map("courses")
+}
+
+model Lesson {
+  id          String   @id @default(cuid())
+  title       String
+  isCompleted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  // one Course -> many Lessons.
+  // onDelete: Cascade => deleting a course deletes its lessons (DB-level FK).
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId String
+
+  @@map("lessons")
+}
